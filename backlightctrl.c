@@ -29,6 +29,10 @@ int main(int argc, char **argv)
     if (argc < 2)
     {
         printf("usage: %s [options]\n", argv[0]);
+        puts("\t-get\t\tPrints brightness in percent\n"
+             "\t-set [percent]\tsets brightness\n"
+             "\t-inc [percent]\tincreases brightness by [percent]\n"
+             "\t-inc [percent]\tdecreases brightness by [percent]\n");
         return 1;
     }
     char *current = readfile(BRIGHTNESSFILE);

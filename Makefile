@@ -14,4 +14,4 @@ release: backlightctrl.o
 	cp $(BIN) /usr/local/bin/
 
 clean:
-	rm *.o $(BIN) $(BIN)-debug /usr/local/bin/$(BIN)
+	$(RM) *.o $(BIN) $(BIN)-debug /usr/local/bin/$(BIN)
