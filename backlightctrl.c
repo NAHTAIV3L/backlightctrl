@@ -2,127 +2,116 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BRIGHTNESSFILE    "/sys/class/backlight/intel_backlight/brightness"
+#define BRIGHTNESSFILE "/sys/class/backlight/intel_backlight/brightness"
 #define MAXBRIGHTNESSFILE "/sys/class/backlight/intel_backlight/max_brightness"
 #define BUFSIZE 10
 
-char *readfile(char *filename) {
+char *readfile(char *filename)
+{
     char *buffer = 0;
     long length;
     FILE *f = fopen(filename, "rb");
 
-    if (f) {
+    if (f)
+    {
         fseek(f, 0, SEEK_END);
         length = ftell(f);
         fseek(f, 0, SEEK_SET);
         buffer = malloc(length);
-        if (buffer) {
-          fread(buffer, 1, length, f);
+        if (buffer)
+        {
+            fread(buffer, 1, length, f);
         }
         fclose(f);
+    }
+    else
+    {
+        printf("failed to read file %s", filename);
+        exit(1);
     }
     return buffer;
 }
 
-int main(int argc, char **argv)
+char *program = NULL;
+char *current = NULL;
+char *max = NULL;
+int icurrent = 0;
+int imax = 0;
+double onepercent = 0;
+
+void usage()
 {
-    if (argc < 2)
+    printf("usage: %s [options]\n", program);
+    puts("\t-get\t\tPrints brightness in percent\n"
+         "\t-set [percent]\tsets brightness\n"
+         "\t-inc [percent]\tincreases brightness by [percent]\n"
+         "\t-inc [percent]\tdecreases brightness by [percent]\n");
+    exit(1);
+}
+
+void setbrightness(int newbrightness)
+{
+    if (newbrightness > imax)
     {
-        printf("usage: %s [options]\n", argv[0]);
-        puts("\t-get\t\tPrints brightness in percent\n"
-             "\t-set [percent]\tsets brightness\n"
-             "\t-inc [percent]\tincreases brightness by [percent]\n"
-             "\t-inc [percent]\tdecreases brightness by [percent]\n");
-        return 1;
+        newbrightness = imax;
     }
-    char *current = readfile(BRIGHTNESSFILE);
-    char *max = readfile(MAXBRIGHTNESSFILE);
-     
-    if (!current && !max)
-    { printf("files not read"); return 1; }
 
-    if (!strncmp(argv[1], "-get", 4))
+    char buf[BUFSIZE] = {0};
+    snprintf(buf, BUFSIZE, "%d", newbrightness);
+
+    FILE *f = fopen(BRIGHTNESSFILE, "wb");
+    if (f)
     {
-            double num = (atof(current) / atof(max)) * 100;
-            printf("%d\n", (int)(num < 0 ? (num - 0.5) : (num + 0.5)));
-    }
-    else if (!strncmp(argv[1], "-set", 4))
-    {
-        if (argc < 3)
-        {
-            printf("usage: %s %s [percent]\n", argv[0], argv[1]);
-            return 1;
-        }
-        double oneperc = atof(max) / 100;
-        int newval = oneperc * atof(argv[2]);
-        if (newval > atoi(max))
-        { newval = atoi(max); }
-
-        char buf[BUFSIZE] = { 0 };
-        snprintf(buf, BUFSIZE, "%d", newval);
-
-        FILE *f = fopen(BRIGHTNESSFILE, "wb");
-        if (f)
-        {
-            fputs(buf, f);
-            fclose(f);
-        }
-        else
-        { printf("failed to open file"); return 1; }
-    }
-    else if (!strncmp(argv[1], "-inc", 4))
-    {
-        if (argc < 3)
-        {
-            printf("usage: %s %s [percent]\n", argv[0], argv[1]);
-            return 1;
-        }
-
-        double oneperc = atof(max) / 100;
-        int newval = atoi(current) + (oneperc * atof(argv[2]));
-        if (newval > atoi(max))
-        { newval = atoi(max); }
-
-        char buf[BUFSIZE] = { 0 };
-        snprintf(buf, BUFSIZE, "%d", newval);
-
-        FILE *f = fopen(BRIGHTNESSFILE, "wb");
-        if (f)
-        {
-            fputs(buf, f);
-            fclose(f);
-        }
-        else
-        { printf("failed to open file"); return 1; }
-    }
-    else if (!strncmp(argv[1], "-dec", 4))
-    {
-        if (argc < 3)
-        {
-            printf("usage: %s %s [percent]\n", argv[0], argv[1]);
-            return 1;
-        }
-
-        double oneperc = atof(max) / 100;
-        int newval = atoi(current) - (oneperc * atof(argv[2]));
-        if (newval > atoi(max))
-        { newval = atoi(max); }
-
-        char buf[BUFSIZE] = { 0 };
-        snprintf(buf, BUFSIZE, "%d", newval);
-
-        FILE *f = fopen(BRIGHTNESSFILE, "wb");
-        if (f)
-        {
-            fputs(buf, f);
-            fclose(f);
-        }
-        else
-        { printf("failed to open file"); return 1; }
+        fputs(buf, f);
+        fclose(f);
     }
     else
     {
-        printf("error: invalid option\n");
+        printf("failed to open file");
+        exit(1);
+    }
+}
+
+int main(int argc, char **argv)
+{
+    program = argv[0];
+
+    if (argc < 2)
+        usage();
+
+    current = readfile(BRIGHTNESSFILE);
+    max = readfile(MAXBRIGHTNESSFILE);
+
+    imax = atoi(max);
+    icurrent = atoi(current);
+
+    onepercent = atof(max) / 100;
+
+    if (!strncmp(argv[1], "-get", 4))
+    {
+        double num = (atof(current) / atof(max)) * 100;
+        printf("%d\n", (int)(num < 0 ? (num - 0.5) : (num + 0.5)));
+    }
+    else
+    {
+        if (argc < 3)
+            usage();
+
+        int newval = onepercent * atof(argv[2]);
+
+        if (!strncmp(argv[1], "-set", 4))
+        {
+        }
+        else if (!strncmp(argv[1], "-inc", 4))
+            newval += icurrent;
+
+        else if (!strncmp(argv[1], "-dec", 4))
+            newval = icurrent - newval;
+
+        else
+            usage();
+
+        setbrightness(newval);
     }
     return 0;
 }
