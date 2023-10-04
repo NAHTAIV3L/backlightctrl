@@ -55,6 +55,10 @@ void setbrightness(int newbrightness)
     {
         newbrightness = imax;
     }
+    else if (newbrightness < 0)
+    {
+        newbrightness = 0;
+    }
 
     char buf[BUFSIZE] = {0};
     snprintf(buf, BUFSIZE, "%d", newbrightness);
@@ -97,7 +101,7 @@ int main(int argc, char **argv)
         if (argc < 3)
             usage();
 
-        int newval = onepercent * atof(argv[2]);
+        int newval = onepercent * atoi(argv[2]);
 
         if (!strncmp(argv[1], "-set", 4))
         {
