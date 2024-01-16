@@ -103,9 +103,7 @@ int main(int argc, char **argv)
 
         int newval = onepercent * atoi(argv[2]);
 
-        if (!strncmp(argv[1], "-set", 4))
-        {
-        }
+        if (!strncmp(argv[1], "-set", 4)) {}
         else if (!strncmp(argv[1], "-inc", 4))
             newval += icurrent;
 

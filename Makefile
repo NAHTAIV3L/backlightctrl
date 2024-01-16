@@ -1,17 +1,18 @@
 CC=clang
 BIN=backlightctrl
 
-all:debug
+all:$(BIN)
 
-debug: $(BIN).o
-	$(CC) $^ -o $(BIN)-debug
+$(BIN): $(BIN).o
+	$(CC) $^ -o $(BIN)
 
 %.o: %.c %.h
 	$(CC) -c $^
 
-release: backlightctrl.o
-	$(CC) $^ -o $(BIN)
+install: $(BIN)
 	cp $(BIN) /usr/local/bin/
 
 clean:
-	$(RM) *.o $(BIN) $(BIN)-debug /usr/local/bin/$(BIN)
+	$(RM) *.o $(BIN) /usr/local/bin/$(BIN)
+
+.PHONY: install clean all
