@@ -6,26 +6,22 @@
 #define MAXBRIGHTNESSFILE "/sys/class/backlight/intel_backlight/max_brightness"
 #define BUFSIZE 10
 
-char *readfile(char *filename)
-{
+char *readfile(char *filename) {
     char *buffer = 0;
     long length;
     FILE *f = fopen(filename, "rb");
 
-    if (f)
-    {
+    if (f) {
         fseek(f, 0, SEEK_END);
         length = ftell(f);
         fseek(f, 0, SEEK_SET);
         buffer = malloc(length);
-        if (buffer)
-        {
+        if (buffer) {
             fread(buffer, 1, length, f);
         }
         fclose(f);
     }
-    else
-    {
+    else {
         printf("failed to read file %s", filename);
         exit(1);
     }
@@ -39,8 +35,7 @@ int icurrent = 0;
 int imax = 0;
 double onepercent = 0;
 
-void usage()
-{
+void usage() {
     printf("usage: %s [options]\n", program);
     puts("\t-get\t\tPrints brightness in percent\n"
          "\t-set [percent]\tsets brightness\n"
@@ -49,14 +44,11 @@ void usage()
     exit(1);
 }
 
-void setbrightness(int newbrightness)
-{
-    if (newbrightness > imax)
-    {
+void setbrightness(int newbrightness) {
+    if (newbrightness > imax) {
         newbrightness = imax;
     }
-    else if (newbrightness < 0)
-    {
+    else if (newbrightness < 0) {
         newbrightness = 0;
     }
 
@@ -64,20 +56,17 @@ void setbrightness(int newbrightness)
     snprintf(buf, BUFSIZE, "%d", newbrightness);
 
     FILE *f = fopen(BRIGHTNESSFILE, "wb");
-    if (f)
-    {
+    if (f) {
         fputs(buf, f);
         fclose(f);
     }
-    else
-    {
+    else {
         printf("failed to open file");
         exit(1);
     }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     program = argv[0];
 
     if (argc < 2)
@@ -91,28 +80,26 @@ int main(int argc, char **argv)
 
     onepercent = atof(max) / 100;
 
-    if (!strncmp(argv[1], "-get", 4))
-    {
+    if (!strncmp(argv[1], "-get", 4)) {
         double num = (atof(current) / atof(max)) * 100;
         printf("%d\n", (int)(num < 0 ? (num - 0.5) : (num + 0.5)));
     }
-    else
-    {
+    else {
         if (argc < 3)
             usage();
 
         int newval = onepercent * atoi(argv[2]);
 
-        if (!strncmp(argv[1], "-set", 4)) {}
-        else if (!strncmp(argv[1], "-inc", 4))
+        if (!strncmp(argv[1], "-set", 4));
+        else if (!strncmp(argv[1], "-inc", 4)) {
             newval += icurrent;
-
-        else if (!strncmp(argv[1], "-dec", 4))
+        }
+        else if (!strncmp(argv[1], "-dec", 4)) {
             newval = icurrent - newval;
-
-        else
+        }
+        else {
             usage();
-
+        }
         setbrightness(newval);
     }
     return 0;
